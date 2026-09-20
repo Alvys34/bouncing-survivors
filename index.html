@@ -3,51 +3,158 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Bouncing Survivors</title>
+    <title>Pinball Defenders - Fantasy Tower Defense x Pinball</title>
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
     <div id="game-container">
       <canvas id="gameCanvas"></canvas>
-      
-      <!-- Top Bar Overlay -->
-      <div id="top-bar">
-        <div class="stat-pill" id="score-display">Gems: <span id="gem-count">0</span></div>
-        <div class="stat-pill" id="level-display">Lvl: <span id="level-count">1</span></div>
-        <div class="stat-pill" id="balls-display">Balls: <span id="ball-count">1</span></div>
-        <button id="audio-toggle" class="btn-icon" title="Toggle Sound">🔊</button>
-      </div>
 
-      <!-- Upgrade / Card Selection Modal -->
-      <div id="upgrade-modal" class="modal hidden">
-        <div class="modal-content">
-          <div class="card-glow-icon">🎴</div>
-          <h2 class="modal-title">SPELL CARD UNLOCKED!</h2>
-          <p class="modal-subtitle">Choose a magical enhancement</p>
-          <div id="card-options" class="card-grid"></div>
+      <!-- Top HUD Overlay -->
+      <div id="top-hud">
+        <div class="hud-group left-group">
+          <div class="hud-pill" id="wave-display">
+            <span class="hud-label">WAVE</span>
+            <span id="wave-number" class="hud-val">1</span>
+            <span class="hud-sep">|</span>
+            <span id="wave-timer" class="hud-val">00:40</span>
+          </div>
+          <div class="hud-pill" id="core-display">
+            <span class="hud-label">CORE</span>
+            <div class="core-bar-wrap">
+              <div id="core-bar-fill" class="core-bar-fill"></div>
+            </div>
+            <span id="core-hp" class="hud-val">100/100</span>
+          </div>
+        </div>
+
+        <div class="hud-group center-group">
+          <div class="hud-pill gold-pill" id="gold-display">
+            <span class="hud-icon">🪙</span>
+            <span class="hud-label">SCRAP</span>
+            <span id="gold-count" class="hud-val">120</span>
+          </div>
+        </div>
+
+        <div class="hud-group right-group">
+          <div class="hud-pill" id="score-display">
+            <span class="hud-label">SCORE</span>
+            <span id="score-val" class="hud-val">0</span>
+          </div>
+          <div class="hud-pill combo-pill" id="combo-display">
+            <span class="hud-label">COMBO</span>
+            <span id="combo-val" class="hud-val">x1.0</span>
+          </div>
+          <button id="audio-toggle" class="btn-icon" title="Toggle Sound">🔊</button>
         </div>
       </div>
 
-      <!-- Start / Pause Screen -->
+      <!-- In-Wave Overdrive Deck (Bottom Dock) -->
+      <div id="overdrive-deck">
+        <div class="overdrive-energy-container">
+          <div class="energy-label-row">
+            <span class="energy-title">⚡ ARCANE OVERDRIVE</span>
+            <span id="energy-status" class="energy-status">CHARGE VIA BUMPERS (0%)</span>
+          </div>
+          <div class="energy-meter-track">
+            <div id="energy-fill" class="energy-meter-fill"></div>
+          </div>
+        </div>
+        <div id="overdrive-cards" class="overdrive-cards-row">
+          <!-- Dynamically populated by overdrive cards -->
+        </div>
+      </div>
+
+      <!-- Plunger Helper Hint -->
+      <div id="plunger-hint" class="plunger-hint">
+        <span class="plunger-key">SPACEBAR</span> HOLD &amp; RELEASE TO LAUNCH
+      </div>
+
+      <!-- Between-Wave Workshop Modal -->
+      <div id="workshop-modal" class="modal hidden">
+        <div class="modal-card workshop-card">
+          <div class="workshop-header">
+            <div class="workshop-badge">WAVE CLEARED</div>
+            <h2 class="workshop-title">SANCTUARY WORKSHOP</h2>
+            <p class="workshop-desc">
+              Repair damaged fortress gates, overcharge spires, or forge elemental pinball balls.
+            </p>
+            <div class="workshop-gold-banner">
+              Available Scrap Gold: <strong id="workshop-gold" class="gold-text">🪙 120</strong>
+            </div>
+          </div>
+
+          <div id="workshop-grid" class="workshop-grid">
+            <!-- Dynamically populated upgrade cards -->
+          </div>
+
+          <div class="workshop-footer">
+            <button id="next-wave-btn" class="play-btn primary-btn">
+              START NEXT WAVE <span id="next-wave-num">(Wave 2)</span> ⚔️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Overlay -->
       <div id="start-overlay" class="overlay">
-        <div class="overlay-card">
-          <div class="logo-badge">BOUNCING SURVIVORS</div>
-          <h1>A SURVIVORS X PINBALL PROTOTYPE</h1>
-          <p class="guide-text">
-            🎮 <strong>WASD / Arrow Keys</strong> to move the Wizard.<br />
-            🎯 Attacks fire automatically whenever the ball strikes a <strong>Flower Bumper</strong>!<br />
-            🌸 <strong>Corner Flowers:</strong> Precision Slashes &nbsp;|&nbsp; 🌼 <strong>Center Flower:</strong> Giant Nova Blast.<br />
-            💎 Collect diamond XP gems &amp; glowing cards to power up!
-          </p>
-          <button id="start-btn" class="play-btn">START GAME</button>
+        <div class="overlay-card start-card">
+          <div class="logo-badge">TOWER DEFENSE X ARCADE PINBALL</div>
+          <h1 class="main-title">PINBALL DEFENDERS</h1>
+          <p class="tagline">Play arcade pinball to power your fortress defenses in real-time!</p>
+
+          <div class="controls-guide">
+            <div class="control-row">
+              <span class="key-badge">A / Left Shift / ←</span>
+              <span class="key-desc">Left Flipper</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">D / Right Shift / →</span>
+              <span class="key-desc">Right Flipper</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">SPACEBAR</span>
+              <span class="key-desc">Hold &amp; Release Plunger to Launch</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">[ 1 ] &nbsp; [ 2 ] &nbsp; [ 3 ]</span>
+              <span class="key-desc">Trigger In-Wave Overdrives when charged</span>
+            </div>
+          </div>
+
+          <div class="mechanics-summary">
+            <div class="mech-item">
+              <span class="mech-icon">⚡</span>
+              <div><strong>West Bumpers</strong> trigger West Tesla Chain Lightning</div>
+            </div>
+            <div class="mech-item">
+              <span class="mech-icon">🔥</span>
+              <div><strong>East Bumpers</strong> unleash the Dragon Flamethrower</div>
+            </div>
+            <div class="mech-item">
+              <span class="mech-icon">💥</span>
+              <div><strong>Center Bumper</strong> fires heavy Sky-Mortar Artillery</div>
+            </div>
+            <div class="mech-item">
+              <span class="mech-icon">🎴</span>
+              <div><strong>S-P-E-L-L Targets</strong> knock all down for a FULL SCREEN NUKE</div>
+            </div>
+            <div class="mech-item highlight">
+              <span class="mech-icon">♾️</span>
+              <div><strong>Unlimited Balls:</strong> Draining never ends your game — it only resets your Combo! Keep firing to protect your Sanctuary Core!</div>
+            </div>
+          </div>
+
+          <button id="start-btn" class="play-btn">START DEFENDING</button>
         </div>
       </div>
 
       <!-- Game Over Screen -->
       <div id="gameover-overlay" class="overlay hidden">
-        <div class="overlay-card">
-          <h1 class="gameover-title">GAME OVER</h1>
-          <p id="gameover-stats">You survived and collected gems!</p>
+        <div class="overlay-card gameover-card">
+          <div class="gameover-badge">SANCTUARY FALLEN</div>
+          <h1 class="gameover-title">DEFEAT</h1>
+          <p id="gameover-stats" class="gameover-stats">Your fortress survived 1 wave and scored 0 points.</p>
           <button id="restart-btn" class="play-btn">PLAY AGAIN</button>
         </div>
       </div>
