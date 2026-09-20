@@ -90,18 +90,18 @@ export class PinballTable {
   public comboTimer: number = 0;
   private nextBallId: number = 1;
 
-  // Plunger (Width 52px for ample ball clearance)
+  // Plunger (Width 52px for ample clearance)
   public isChargingPlunger: boolean = false;
   public plungerTension: number = 0; // 0..1
   public plungerWidth: number = 52;
 
-  // Flippers (Classic Pinball dual flippers)
+  // Flippers (Classic Pinball geometry with downward rest slope)
   public leftFlipper = {
     pivotX: 0,
     pivotY: 0,
     length: 88,
-    angle: 0.50, // ~28.6 deg rest angle down
-    restAngle: 0.50,
+    angle: 0.44, // ~25 deg downward rest slope
+    restAngle: 0.44,
     upAngle: -0.42, // ~-24 deg stroke angle up
     angularVel: 0,
     isPressed: false
@@ -111,8 +111,8 @@ export class PinballTable {
     pivotX: 0,
     pivotY: 0,
     length: 88,
-    angle: Math.PI - 0.50,
-    restAngle: Math.PI - 0.50,
+    angle: Math.PI - 0.44,
+    restAngle: Math.PI - 0.44,
     upAngle: Math.PI + 0.42,
     angularVel: 0,
     isPressed: false
@@ -163,19 +163,19 @@ export class PinballTable {
 
     // 1. Dual Flippers Setup
     const flipperY = h * 0.88;
-    const flipperSpacing = 110;
+    const flipperSpacing = 95;
     this.leftFlipper.pivotX = playW * 0.5 - flipperSpacing;
     this.leftFlipper.pivotY = flipperY;
     this.rightFlipper.pivotX = playW * 0.5 + flipperSpacing;
     this.rightFlipper.pivotY = flipperY;
 
-    // 2. Pop Bumper Triangle Cluster (Classic Pinball upper-field layout)
+    // 2. Pop Bumper Triangle Cluster (Classic Pinball upper field)
     this.bumpers = [
       // Top-Left: West Tesla Spire (Cyan)
       {
         id: 'west_tesla',
         x: playW * 0.35,
-        y: h * 0.25,
+        y: h * 0.22,
         radius: 38,
         type: 'tesla',
         color: '#0284c7',
@@ -188,7 +188,7 @@ export class PinballTable {
       {
         id: 'east_flames',
         x: playW * 0.65,
-        y: h * 0.25,
+        y: h * 0.22,
         radius: 38,
         type: 'flames',
         color: '#ea580c',
@@ -201,7 +201,7 @@ export class PinballTable {
       {
         id: 'center_mortar',
         x: playW * 0.50,
-        y: h * 0.34,
+        y: h * 0.32,
         radius: 44,
         type: 'mortar',
         color: '#9333ea',
@@ -212,31 +212,41 @@ export class PinballTable {
       }
     ];
 
-    // 3. Slingshots (Triangular active rubber kickers above each flipper)
+    // 3. Slingshots (Real Pinball Triangles situated above inlanes)
+    // Left Slingshot
+    const lpx = this.leftFlipper.pivotX;
+    const rpx = this.rightFlipper.pivotX;
+
     this.slingshots = [
       {
         side: 'left',
-        x1: playW * 0.27,
-        y1: h * 0.69,
-        x2: playW * 0.35,
-        y2: h * 0.81,
-        x3: playW * 0.21,
-        y3: h * 0.81,
+        // Top Post
+        x1: lpx - 20,
+        y1: flipperY - 145,
+        // Inner Bottom Post (Kicker face ends here)
+        x2: lpx + 36,
+        y2: flipperY - 26,
+        // Outer Bottom Post (Forms triangle with inlane guide)
+        x3: lpx - 16,
+        y3: flipperY - 26,
         flashTimer: 0
       },
       {
         side: 'right',
-        x1: playW * 0.73,
-        y1: h * 0.69,
-        x2: playW * 0.65,
-        y2: h * 0.81,
-        x3: playW * 0.79,
-        y3: h * 0.81,
+        // Top Post
+        x1: rpx + 20,
+        y1: flipperY - 145,
+        // Inner Bottom Post
+        x2: rpx - 36,
+        y2: flipperY - 26,
+        // Outer Bottom Post
+        x3: rpx + 16,
+        y3: flipperY - 26,
         flashTimer: 0
       }
     ];
 
-    // 4. S-P-E-L-L Drop Targets (Classic Left-Bank Vertical Setup)
+    // 4. S-P-E-L-L Drop Targets (Left Bank with Steel Housing)
     this.dropTargets = [];
     const letters = ['S', 'P', 'E', 'L', 'L'];
     const targetW = 16;
@@ -257,17 +267,17 @@ export class PinballTable {
       });
     });
 
-    // 5. Physical Wall Geometry
+    // 5. Authentic Playfield Physical Walls
     this.walls = [];
 
-    // Outer Left Wall
-    this.walls.push({ x1: 20, y1: 140, x2: 20, y2: h * 0.68, bounce: 0.85 });
+    // Outer Left Wall (runs down to outlane)
+    this.walls.push({ x1: 24, y1: 140, x2: 24, y2: flipperY - 10, bounce: 0.85 });
 
-    // Outer Right Wall (Shooter Lane Outer Boundary)
+    // Outer Right Wall (Shooter Lane Outer Wall)
     this.walls.push({ x1: w - 6, y1: 140, x2: w - 6, y2: h * 0.96, bounce: 0.85 });
 
-    // Shooter Lane Divider Wall (from y = 140 down to apron)
-    this.walls.push({ x1: playW, y1: 140, x2: playW, y2: h * 0.84, bounce: 0.85 });
+    // Shooter Lane Divider Wall (separates playfield from shooter lane)
+    this.walls.push({ x1: playW, y1: 140, x2: playW, y2: flipperY - 10, bounce: 0.85 });
 
     // Top Arch Curved Polyline (Smoothly guides launched ball into upper playfield)
     const archPoints = [
@@ -279,8 +289,8 @@ export class PinballTable {
       { x: playW * 0.44, y: 14 },
       { x: playW * 0.24, y: 22 },
       { x: 50, y: 44 },
-      { x: 20, y: 80 },
-      { x: 20, y: 140 }
+      { x: 24, y: 80 },
+      { x: 24, y: 140 }
     ];
 
     for (let i = 0; i < archPoints.length - 1; i++) {
@@ -297,27 +307,43 @@ export class PinballTable {
     this.walls.push({ x1: playW * 0.36, y1: 85, x2: playW * 0.36, y2: 155, bounce: 0.75 });
     this.walls.push({ x1: playW * 0.64, y1: 85, x2: playW * 0.64, y2: 155, bounce: 0.75 });
 
-    // Center Top Deflector (Splits ball between Tesla and Flame bumpers)
-    this.walls.push({ x1: playW * 0.48, y1: 120, x2: playW * 0.52, y2: 120, bounce: 0.9 });
-
     // Drop Target Backstop Wall (behind S-P-E-L-L bank)
     this.walls.push({ x1: playW * 0.08, y1: startY - 10, x2: playW * 0.08, y2: startY + letters.length * (targetH + targetGap), bounce: 0.8 });
 
-    // Lower Playfield: Left Inlane & Outlane Guide Walls (Ends well above apron to prevent wedging)
-    this.walls.push({ x1: playW * 0.17, y1: h * 0.68, x2: playW * 0.17, y2: h * 0.80, bounce: 0.85 }); // Inlane divider
-    this.walls.push({ x1: 20, y1: h * 0.68, x2: playW * 0.08, y2: h * 0.80, bounce: 0.85 }); // Outlane left outer guide
+    // -------------------------------------------------------------
+    // AUTHENTIC INLANE / OUTLANE GUIDES & APRON (NO WEDGES!)
+    // -------------------------------------------------------------
+    // Left Inlane Guide: smoothly feeds ball directly onto the left flipper bat!
+    this.walls.push({
+      x1: lpx - 56,
+      y1: flipperY - 155,
+      x2: lpx - 14,
+      y2: flipperY - 10,
+      bounce: 0.85
+    });
 
-    // Lower Playfield: Right Inlane & Outlane Guide Walls
-    this.walls.push({ x1: playW * 0.83, y1: h * 0.68, x2: playW * 0.83, y2: h * 0.80, bounce: 0.85 }); // Inlane divider
-    this.walls.push({ x1: playW, y1: h * 0.68, x2: playW * 0.92, y2: h * 0.80, bounce: 0.85 }); // Outlane right outer guide
+    // Right Inlane Guide: smoothly feeds ball directly onto the right flipper bat!
+    this.walls.push({
+      x1: rpx + 56,
+      y1: flipperY - 155,
+      x2: rpx + 14,
+      y2: flipperY - 10,
+      bounce: 0.85
+    });
 
-    // Bottom Apron Angled Funnel Walls (Clean sloped metal guides directly to flippers)
-    this.walls.push({ x1: 20, y1: h * 0.84, x2: this.leftFlipper.pivotX - 10, y2: flipperY + 14, bounce: 0.8 });
-    this.walls.push({ x1: playW, y1: h * 0.84, x2: this.rightFlipper.pivotX + 10, y2: flipperY + 14, bounce: 0.8 });
+    // Slingshot Non-Active Back Walls
+    this.walls.push({ x1: lpx - 20, y1: flipperY - 145, x2: lpx - 16, y2: flipperY - 26, bounce: 0.8 });
+    this.walls.push({ x1: rpx + 20, y1: flipperY - 145, x2: rpx + 16, y2: flipperY - 26, bounce: 0.8 });
 
-    // Slingshot Back Walls
-    this.walls.push({ x1: playW * 0.21, y1: h * 0.81, x2: playW * 0.27, y2: h * 0.69, bounce: 0.8 });
-    this.walls.push({ x1: playW * 0.79, y1: h * 0.81, x2: playW * 0.73, y2: h * 0.69, bounce: 0.8 });
+    // Protective Rubber Post Bushing behind each Flipper Pivot (Prevents any ball wedging behind pivot!)
+    this.walls.push({ x1: lpx - 18, y1: flipperY - 10, x2: lpx - 12, y2: flipperY + 16, bounce: 0.9 });
+    this.walls.push({ x1: rpx + 18, y1: flipperY - 10, x2: rpx + 12, y2: flipperY + 16, bounce: 0.9 });
+
+    // Bottom Apron (Located strictly BELOW the outlanes & flippers, sloped into drain trough!)
+    // Left Apron Funnel: from outer wall below outlane to drain opening
+    this.walls.push({ x1: 24, y1: flipperY + 15, x2: lpx - 25, y2: h - 15, bounce: 0.8 });
+    // Right Apron Funnel: from shooter lane wall below outlane to drain opening
+    this.walls.push({ x1: playW, y1: flipperY + 15, x2: rpx + 25, y2: h - 15, bounce: 0.8 });
   }
 
   // Spawns ball resting securely on top of the red square plunger tip
@@ -385,7 +411,7 @@ export class PinballTable {
       // If ball is in the shooter lane
       if (b.x > playW - 4 && b.y > this.height * 0.5) {
         // Guaranteed powerful launch velocity even on instantaneous key tap
-        const force = 1200 + Math.max(0.15, this.plungerTension) * 1200;
+        const force = 1250 + Math.max(0.15, this.plungerTension) * 1250;
         b.vy = -force;
         b.vx = 0;
         launched = true;
@@ -430,7 +456,7 @@ export class PinballTable {
       if (s.flashTimer > 0) s.flashTimer -= dt;
     }
 
-    // 6. Substep Ball Simulation
+    // 6. Substep Ball Simulation for high accuracy
     const substeps = 4;
     const subDt = dt / substeps;
     for (let step = 0; step < substeps; step++) {
@@ -547,14 +573,14 @@ export class PinballTable {
       }
 
       // -------------------------------------------------------------
-      // 2. STATIC PHYSICAL WALL SEGMENTS (Outer Arch, Guides, Apron)
+      // 2. STATIC PHYSICAL WALL SEGMENTS (Outer Arch, Inlanes, Apron)
       // -------------------------------------------------------------
       for (const wall of this.walls) {
         this.checkLineCollision(b, wall.x1, wall.y1, wall.x2, wall.y2, wall.bounce);
       }
 
       // -------------------------------------------------------------
-      // 3. SLINGSHOTS (Triangular Active Kicking Rubbers)
+      // 3. SLINGSHOTS (Active Triangular Rubber Kickers)
       // -------------------------------------------------------------
       for (const s of this.slingshots) {
         // Hypotenuse is the active kicker face (x1, y1) to (x2, y2)
@@ -566,8 +592,8 @@ export class PinballTable {
           this.comboTimer = 3.5;
 
           const kickDir = s.side === 'left' ? 1 : -1;
-          b.vx += kickDir * 280;
-          b.vy -= 220;
+          b.vx += kickDir * 290;
+          b.vy -= 240;
 
           for (let p = 0; p < 7; p++) {
             this.particles.push({
@@ -674,7 +700,7 @@ export class PinballTable {
       }
 
       // -------------------------------------------------------------
-      // 6. DUAL FLIPPERS
+      // 6. DUAL FLIPPERS (Angular Strike & Impulse)
       // -------------------------------------------------------------
       this.checkFlipperCollision(b, this.leftFlipper, 1);
       this.checkFlipperCollision(b, this.rightFlipper, -1);
@@ -682,7 +708,7 @@ export class PinballTable {
       // -------------------------------------------------------------
       // 7. DRAIN DETECTION (Below Flippers into Bottom Trough)
       // -------------------------------------------------------------
-      const drainThreshold = this.height * 0.94;
+      const drainThreshold = this.height * 0.95;
       if (b.y > drainThreshold) {
         this.balls.splice(i, 1);
 
@@ -722,12 +748,12 @@ export class PinballTable {
     const dy = b.y - closeY;
     const dist = Math.hypot(dx, dy);
 
-    if (dist < b.radius + 6) {
+    if (dist < b.radius + 5) {
       const nx = dx / (dist || 1);
       const ny = dy / (dist || 1);
 
-      b.x = closeX + nx * (b.radius + 7);
-      b.y = closeY + ny * (b.radius + 7);
+      b.x = closeX + nx * (b.radius + 6);
+      b.y = closeY + ny * (b.radius + 6);
 
       const dot = b.vx * nx + b.vy * ny;
       if (dot < 0) {
@@ -830,23 +856,26 @@ export class PinballTable {
     const playW = this.width - this.plungerWidth;
     const w = this.width;
     const h = this.height;
+    const flipperY = h * 0.88;
+    const lpx = this.leftFlipper.pivotX;
+    const rpx = this.rightFlipper.pivotX;
 
-    // 1. Pinball Table Background
+    // 1. Pinball Table Background (Parchment / Lacquered Maple Wood)
     ctx.fillStyle = '#1c1c1c';
     ctx.fillRect(0, 0, w, h);
 
-    ctx.fillStyle = '#ece3cb';
+    ctx.fillStyle = '#eee6d2';
     ctx.fillRect(2, 2, w - 4, h - 4);
 
-    // Decorative Playfield Center Sigil / Artwork
-    ctx.strokeStyle = '#d4c5a3';
+    // Decorative Playfield Center Sigil / Sunburst
+    ctx.strokeStyle = '#d9cbb2';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(playW * 0.5, h * 0.32, 140, 0, Math.PI * 2);
+    ctx.arc(playW * 0.5, h * 0.30, 130, 0, Math.PI * 2);
     ctx.stroke();
 
     // 2. Shooter Lane Track & Bottom Plunger Base
-    ctx.fillStyle = '#d8cbab';
+    ctx.fillStyle = '#dcd0b3';
     ctx.fillRect(playW, 0, this.plungerWidth, h);
 
     // Shooter Lane Divider Metal Wall
@@ -854,7 +883,7 @@ export class PinballTable {
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(playW, 140);
-    ctx.lineTo(playW, h * 0.84);
+    ctx.lineTo(playW, flipperY - 10);
     ctx.stroke();
 
     // One-Way Wire Gate indicator at top of shooter lane
@@ -899,11 +928,11 @@ export class PinballTable {
     ctx.fillStyle = '#fca5a5';
     ctx.fillRect(playW + 10, plateY + 3, this.plungerWidth - 20, 3);
 
-    // Solid Plunger Bottom Base Housing (prevents anything falling out)
+    // Solid Plunger Bottom Base Housing
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(playW, h * 0.96, this.plungerWidth, h * 0.04);
 
-    // 4. Render Physical Walls & Guides
+    // 4. Render Physical Walls & Chrome Wire Guides
     ctx.strokeStyle = '#3e3422';
     ctx.lineWidth = 4;
     ctx.lineCap = 'round';
@@ -914,12 +943,25 @@ export class PinballTable {
       ctx.stroke();
     }
 
-    // 5. Render S-P-E-L-L Drop Targets
+    // Inlane Arrow Guidance Decals
+    ctx.fillStyle = 'rgba(217, 119, 6, 0.4)';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('▼', lpx - 34, flipperY - 80);
+    ctx.fillText('▼', rpx + 34, flipperY - 80);
+
+    // 5. Render S-P-E-L-L Drop Targets with Recessed Housing
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(playW * 0.12 - 4, h * 0.38 - 6, 24, 5 * 38 + 6);
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(playW * 0.12 - 4, h * 0.38 - 6, 24, 5 * 38 + 6);
+
     for (const t of this.dropTargets) {
       if (!t.isDown) {
         ctx.fillStyle = '#e11d48';
         ctx.strokeStyle = '#111';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2;
         ctx.fillRect(t.x, t.y, t.width, t.height);
         ctx.strokeRect(t.x, t.y, t.width, t.height);
 
@@ -929,15 +971,16 @@ export class PinballTable {
         ctx.textBaseline = 'middle';
         ctx.fillText(t.letter, t.x + t.width * 0.5, t.y + t.height * 0.5);
       } else {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.fillRect(t.x, t.y, t.width, t.height);
       }
     }
 
-    // 6. Slingshots
+    // 6. Slingshots (Real Pinball Illuminated Caps with 3 Chrome Posts & Kicking Rubber)
     for (const s of this.slingshots) {
+      // Slingshot Acrylic Cap
       ctx.fillStyle = s.flashTimer > 0 ? '#6ee7b7' : '#059669';
-      ctx.strokeStyle = '#111';
+      ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(s.x1, s.y1);
@@ -947,9 +990,27 @@ export class PinballTable {
       ctx.fill();
       ctx.stroke();
 
-      // Slingshot rubber bumper kicker line
-      ctx.strokeStyle = '#fef08a';
-      ctx.lineWidth = 4;
+      // Slingshot Acrylic Inner Art
+      ctx.fillStyle = s.flashTimer > 0 ? '#a7f3d0' : '#10b981';
+      ctx.beginPath();
+      ctx.arc((s.x1 + s.x2 + s.x3) / 3, (s.y1 + s.y2 + s.y3) / 3, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Chrome Post Fasteners
+      const posts = [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }, { x: s.x3, y: s.y3 }];
+      for (const p of posts) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Kicking Rubber Band along active hypotenuse face
+      ctx.strokeStyle = s.flashTimer > 0 ? '#ffffff' : '#fef08a';
+      ctx.lineWidth = 4.5;
       ctx.beginPath();
       ctx.moveTo(s.x1, s.y1);
       ctx.lineTo(s.x2, s.y2);
@@ -998,28 +1059,41 @@ export class PinballTable {
     this.renderFlipper(ctx, this.leftFlipper);
     this.renderFlipper(ctx, this.rightFlipper);
 
-    // 9. Bottom Drain Apron / Trough Graphics
-    ctx.fillStyle = '#262626';
-    ctx.strokeStyle = '#ca8a04';
+    // 9. AUTHENTIC BOTTOM APRON (Solid Steel Tray strictly BELOW flippers)
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#d97706';
     ctx.lineWidth = 3;
 
-    // Left Apron Triangle
+    // Left Apron Triangle Plate (Below Outlane)
     ctx.beginPath();
-    ctx.moveTo(0, h * 0.83);
-    ctx.lineTo(this.leftFlipper.pivotX - 10, h * 0.88 + 14);
-    ctx.lineTo(0, h);
+    ctx.moveTo(24, flipperY + 15);
+    ctx.lineTo(lpx - 25, h - 15);
+    ctx.lineTo(24, h);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Right Apron Triangle
+    // Left Apron Instruction Decal
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🕹️ [A] FLIP', 85, flipperY + 65);
+
+    // Right Apron Triangle Plate (Below Outlane)
     ctx.beginPath();
-    ctx.moveTo(playW, h * 0.83);
-    ctx.lineTo(this.rightFlipper.pivotX + 10, h * 0.88 + 14);
+    ctx.moveTo(playW, flipperY + 15);
+    ctx.lineTo(rpx + 25, h - 15);
     ctx.lineTo(playW, h);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
+    // Right Apron Instruction Decal
+    ctx.fillText('🕹️ [D] FLIP', playW - 60, flipperY + 65);
+
+    // Central Drain Trough Graphic
+    ctx.fillStyle = '#090a0f';
+    ctx.fillRect(lpx - 20, h - 25, (rpx + 20) - (lpx - 20), 25);
 
     // 10. Particles
     for (const p of this.particles) {
