@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Bouncing Survivors</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="game-container">
+      <canvas id="gameCanvas"></canvas>
+      
+      <!-- Top Bar Overlay -->
+      <div id="top-bar">
+        <div class="stat-pill" id="score-display">Gems: <span id="gem-count">0</span></div>
+        <div class="stat-pill" id="level-display">Lvl: <span id="level-count">1</span></div>
+        <div class="stat-pill" id="balls-display">Balls: <span id="ball-count">1</span></div>
+        <button id="audio-toggle" class="btn-icon" title="Toggle Sound">🔊</button>
+      </div>
+
+      <!-- Upgrade / Card Selection Modal -->
+      <div id="upgrade-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="card-glow-icon">🎴</div>
+          <h2 class="modal-title">SPELL CARD UNLOCKED!</h2>
+          <p class="modal-subtitle">Choose a magical enhancement</p>
+          <div id="card-options" class="card-grid"></div>
+        </div>
+      </div>
+
+      <!-- Start / Pause Screen -->
+      <div id="start-overlay" class="overlay">
+        <div class="overlay-card">
+          <div class="logo-badge">BOUNCING SURVIVORS</div>
+          <h1>A SURVIVORS X PINBALL PROTOTYPE</h1>
+          <p class="guide-text">
+            🎮 <strong>WASD / Arrow Keys</strong> to move the Wizard.<br />
+            🎯 Attacks fire automatically whenever the ball strikes a <strong>Flower Bumper</strong>!<br />
+            🌸 <strong>Corner Flowers:</strong> Precision Slashes &nbsp;|&nbsp; 🌼 <strong>Center Flower:</strong> Giant Nova Blast.<br />
+            💎 Collect diamond XP gems &amp; glowing cards to power up!
+          </p>
+          <button id="start-btn" class="play-btn">START GAME</button>
+        </div>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="gameover-overlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h1 class="gameover-title">GAME OVER</h1>
+          <p id="gameover-stats">You survived and collected gems!</p>
+          <button id="restart-btn" class="play-btn">PLAY AGAIN</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
