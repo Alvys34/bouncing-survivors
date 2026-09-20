@@ -159,6 +159,44 @@ class GameEngine {
       this.restartGame();
     });
 
+    // Plunger Hint Click (Immediate Launch on Click)
+    this.plungerHintEl.addEventListener('click', () => {
+      this.pinball.releasePlunger();
+    });
+
+    // Canvas Pointer / Touch / Click Controls
+    this.canvas.addEventListener('pointerdown', (e) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const scaleX = this.canvas.width / rect.width;
+      const canvasX = (e.clientX - rect.left) * scaleX;
+
+      const arenaW = this.canvas.width * 0.52;
+      const pinballW = this.canvas.width * 0.48;
+      const playW = pinballW - this.pinball.plungerWidth;
+
+      if (canvasX >= arenaW) {
+        const tableX = canvasX - arenaW;
+        if (tableX >= playW - 10) {
+          // Clicked in shooter lane: charge/launch plunger
+          this.pinball.startChargingPlunger();
+        } else if (tableX < playW * 0.5) {
+          // Left table half: flip left flipper
+          this.pinball.setLeftFlipper(true);
+        } else {
+          // Right table half: flip right flipper
+          this.pinball.setRightFlipper(true);
+        }
+      }
+    });
+
+    window.addEventListener('pointerup', () => {
+      if (this.pinball.isChargingPlunger) {
+        this.pinball.releasePlunger();
+      }
+      this.pinball.setLeftFlipper(false);
+      this.pinball.setRightFlipper(false);
+    });
+
     // Audio Toggle
     this.audioToggle.addEventListener('click', () => {
       const isEnabled = sound.toggleMute();
